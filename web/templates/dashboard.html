@@ -140,21 +140,37 @@
       const GATEWAY_CONFIG = "{{ ws_server }}";
     </script>
 
-    <!-- Load các file JavaScript theo thứ tự (Global State → WebSocket → UI → Commands) -->
-    <script src="{{ url_for('static', filename='state.js') }}"></script>
-    <script src="{{ url_for('static', filename='websocket.js') }}"></script>
-    <script src="{{ url_for('static', filename='ui.js') }}"></script>
-    <script src="{{ url_for('static', filename='commands.js') }}"></script>
+    <!-- Load các file JavaScript theo thứ tự đúng -->
+    <!-- 1. Core: State -->
+    <script src="{{ url_for('static', filename='js/core/state.js') }}"></script>
 
-    <script>
-      // Khởi chạy sau khi load xong tất cả file JS
-      window.onload = function () {
-        initWebSocket(GATEWAY_CONFIG);
-        // Initialize webcam button state
-        updateWebcamButton();
-        // Initialize automatic webcam turn-off on other button clicks
-        initWebcamAutoOff();
-      };
-    </script>
+    <!-- 2. Components: UI Helpers (must load before websocket which uses logStatus) -->
+    <script src="{{ url_for('static', filename='js/components/StatusLogger.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/components/ViewManager.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/components/TableRenderer.js') }}"></script>
+
+    <!-- 3. Core: WebSocket Connection -->
+    <script src="{{ url_for('static', filename='js/core/websocket.js') }}"></script>
+
+    <!-- 4. Handlers: Message Handlers (must load before handlers/index.js) -->
+    <!-- Load specific handlers first (errorHandler depends on these) -->
+    <script src="{{ url_for('static', filename='js/handlers/webcamHandler.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/handlers/processHandler.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/handlers/mediaHandler.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/handlers/keylogHandler.js') }}"></script>
+    <!-- errorHandler must load after the above handlers (it calls their error functions) -->
+    <script src="{{ url_for('static', filename='js/handlers/errorHandler.js') }}"></script>
+    <!-- Router must load last (it calls all handlers) -->
+    <script src="{{ url_for('static', filename='js/handlers/index.js') }}"></script>
+
+    <!-- 5. Commands: Command Functions (order matters for dependencies) -->
+    <script src="{{ url_for('static', filename='js/commands/processCommands.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/commands/mediaCommands.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/commands/keyloggerCommands.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/commands/systemCommands.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/commands/stateManager.js') }}"></script>
+
+    <!-- 6. Init: Application Initialization -->
+    <script src="{{ url_for('static', filename='js/init.js') }}"></script>
   </body>
 </html>

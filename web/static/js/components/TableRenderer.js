@@ -1,22 +1,7 @@
 /**
- * ui.js - UI Helper Functions
- * Handles view switching, table rendering, and status display
+ * TableRenderer.js - Table Rendering Component
+ * Handles rendering of process/application tables
  */
-
-// Chuyển đổi tab hiển thị (Table, Media, Text)
-function switchView(viewId, title) {
-    // Ẩn tất cả các view-section
-    const sections = document.querySelectorAll('.view-section');
-    sections.forEach(el => el.classList.remove('active'));
-    
-    // Hiện view được chọn
-    const selected = document.getElementById(viewId);
-    if (selected) selected.classList.add('active');
-    
-    // Cập nhật tiêu đề
-    const titleEl = document.getElementById('view-title');
-    if (titleEl) titleEl.innerText = title;
-}
 
 // Vẽ bảng HTML từ dữ liệu JSON
 function renderTable(dataArray) {
@@ -60,14 +45,5 @@ function renderTable(dataArray) {
         
         tbody.appendChild(tr);
     });
-}
-
-// Hàm ghi log trạng thái nhỏ ở góc dưới menu
-function logStatus(text) {
-    const el = document.getElementById('status-log');
-    if (el) {
-        const time = new Date().toLocaleTimeString();
-        el.innerText = `[${time}] ${text}`;
-    }
 }
 

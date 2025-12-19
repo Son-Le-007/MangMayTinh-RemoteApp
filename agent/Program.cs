@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Net.WebSockets;
 using System.Text;
@@ -30,22 +29,6 @@ namespace server
         static public IConfiguration Configuration { get; private set; }
         static public ClientWebSocket GatewayWebSocket { get; internal set; }
         private static CancellationTokenSource connectionLoopCancellation = new CancellationTokenSource();
-        //static public void sendData(ref string s)
-        //{
-        //    byte[] data = new Byte[1024];
-        //    data = Encoding.ASCII.GetBytes(s);
-        //    client.Send(data, data.Length, SocketFlags.None);
-        //}
-        //static public bool receiveData(ref string s)
-        //{
-        //    byte[] data = new Byte[1024];
-        //    //data = Encoding.ASCII.GetBytes(s);
-        //    int rec = Program.client.Receive(data);
-        //    if (rec == 0)
-        //        return false;
-        //    s = Encoding.ASCII.GetString(data, 0, rec);
-        //    return true;
-        //}
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
@@ -61,17 +44,19 @@ namespace server
         static async Task MainAsync()
         {
             // Load configuration from appsettings.json (single source of truth)
+            // appsettings.json is located at project root (one level up from agent directory)
+            var projectRoot = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", ".."));
             var builder = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
+                .SetBasePath(projectRoot)
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false);
 
             Configuration = builder.Build();
 
             // Connect to Gateway WebSocket server
-            string gatewayUrl = Configuration["Gateway:WebSocketUrl"];
+            string gatewayUrl = Configuration["GatewayServer"];
             if (string.IsNullOrEmpty(gatewayUrl))
             {
-                Console.WriteLine("[ERROR] Gateway WebSocket URL not configured. Please set 'Gateway:WebSocketUrl' in appsettings.json.");
+                Console.WriteLine("[ERROR] Gateway WebSocket URL not configured. Please set 'GatewayServer' in appsettings.json.");
                 return;
             }
 

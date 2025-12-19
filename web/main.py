@@ -1,12 +1,11 @@
 from flask import Flask, render_template
+from config import load_gateway_url, get_port
 
 app = Flask(__name__)
 
-# --- CẤU HÌNH ---
-# Đây là địa chỉ của Node.js Socket Gateway.
-# - Nếu chạy trên cùng máy tính: dùng "ws://localhost:8080"
-# - Nếu Gateway nằm trên server khác/máy khác: thay bằng IP của máy đó, ví dụ "ws://192.168.1.5:8080"
-GATEWAY_URL = "ws://localhost:8080"
+# Load configuration
+GATEWAY_URL = load_gateway_url()
+PORT = get_port()
 
 @app.route('/')
 def index():
@@ -19,11 +18,11 @@ def index():
     return render_template('dashboard.html', ws_server=GATEWAY_URL)
 
 if __name__ == '__main__':
-    # Chạy Web Server ở cổng 5000
+    # Chạy Web Server
     print("---------------------------------------------------")
-    print(f"Web Client đang chạy tại: http://localhost:5000")
+    print(f"Web Client đang chạy tại: http://localhost:{PORT}")
     print(f"Đang cấu hình kết nối tới Gateway: {GATEWAY_URL}")
     print("---------------------------------------------------")
     
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=PORT)
 
