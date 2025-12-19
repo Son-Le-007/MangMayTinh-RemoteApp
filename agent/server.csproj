@@ -16,6 +16,7 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="6.0.1" />
     <PackageReference Include="DotNetEnv" Version="3.0.0" />
+    <PackageReference Include="OpenCvSharp4.Windows" Version="4.8.0.20230708" />
   </ItemGroup>
 
   <ItemGroup>

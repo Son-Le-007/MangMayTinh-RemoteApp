@@ -37,6 +37,9 @@ namespace server
             processHandler = new ProcessHandler();
             applicationHandler = new ApplicationHandler();
             webcamHandler = new WebcamHandler();
+            
+            // Set up webcam handler callback for sending frames
+            // This will be set when WebSocket is available in StartListeningAsync
         }
 
         /// <summary>
@@ -217,6 +220,9 @@ namespace server
         {
             this.webSocket = ws;
             this.cancellationTokenSource = new CancellationTokenSource();
+            
+            // Set up webcam handler callback to send frames via WebSocket
+            webcamHandler.SetSendCallback(async (obj) => await SendJsonResponseAsync(obj));
 
             // Start keepalive ping task
             var keepaliveTask = Task.Run(async () => await KeepaliveLoopAsync(cancellationTokenSource.Token));

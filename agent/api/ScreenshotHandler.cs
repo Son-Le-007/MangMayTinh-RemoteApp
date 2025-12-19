@@ -19,7 +19,7 @@ namespace server.api
         {
             try
             {
-                // Capture primary screen
+                // Capture primary screen at its native resolution
                 Bitmap screenshot = new Bitmap(
                     Screen.PrimaryScreen.Bounds.Width,
                     Screen.PrimaryScreen.Bounds.Height,
@@ -40,7 +40,8 @@ namespace server.api
                 // Convert to BMP format and encode as base64
                 using (MemoryStream ms = new MemoryStream())
                 {
-                    screenshot.Save(ms, ImageFormat.Bmp);
+                    // Encode as JPEG so it matches what the web client expects
+                    screenshot.Save(ms, ImageFormat.Jpeg);
                     byte[] imageBytes = ms.ToArray();
                     string base64Image = Convert.ToBase64String(imageBytes);
 
@@ -49,7 +50,9 @@ namespace server.api
                     return new
                     {
                         success = true,
-                        format = "base64",
+                        // This is the MIME subtype used on the web client:
+                        // data:image/<format>;base64,<data>
+                        format = "jpeg",
                         imageData = base64Image
                     };
                 }
