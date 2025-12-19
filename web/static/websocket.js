@@ -46,9 +46,26 @@ function initWebSocket(gatewayUrl) {
 
 // --- MESSAGE HANDLING ---
 function handleServerMessage(msg) {
-    // msg can be:
-    // - Legacy format: { type: "...", data: "..." }
-    // - API contract format: { success: true/false, message: "...", data: "...", type: "..." }
+    // Handle API contract format responses: { success: true/false, message: "...", data: "...", type: "..." }
+    
+    // WEBCAM_FRAME messages don't have 'success' field, handle them first
+    // Check for webcam frames (has 'frameData' field or 'type' === 'WEBCAM_FRAME')
+    if (msg.hasOwnProperty('frameData') || (msg.type === 'WEBCAM_FRAME' && msg.frameData)) {
+        const webcamImg = document.getElementById('monitor-img');
+        if (webcamImg && msg.frameData) {
+            const format = msg.format || "jpeg";
+            webcamImg.src = "data:image/" + format + ";base64," + msg.frameData;
+            
+            // If we're waiting for the first frame, update UI state now
+            if (isWaitingForWebcamFrame) {
+                isWebcamOn = true;
+                isWaitingForWebcamFrame = false;
+                updateWebcamButton();
+                logStatus("✓ Webcam đã bật và đang hoạt động!");
+            }
+        }
+        return;
+    }
     
     // Check if this is an API contract response (has 'success' field)
     if (msg.hasOwnProperty('success')) {
@@ -120,24 +137,6 @@ function handleServerMessage(msg) {
             return;
         }
         
-        // WEBCAM_FRAME in API contract format (has 'frameData' field)
-        if (msg.hasOwnProperty('frameData')) {
-            const webcamImg = document.getElementById('monitor-img');
-            if (webcamImg && msg.frameData) {
-                const format = msg.format || "jpeg";
-                webcamImg.src = "data:image/" + format + ";base64," + msg.frameData;
-                
-                // If we're waiting for the first frame, update UI state now
-                if (isWaitingForWebcamFrame) {
-                    isWebcamOn = true;
-                    isWaitingForWebcamFrame = false;
-                    updateWebcamButton();
-                    logStatus("✓ Webcam đã bật và đang hoạt động!");
-                }
-            }
-            return;
-        }
-        
         // WEBCAM_START response - don't update UI here, wait for first frame
         if (msg.message && (msg.message.includes("Webcam streaming started") || msg.message.includes("Webcam streaming"))) {
             // Don't update UI state yet - wait for first frame to confirm it's working
@@ -159,56 +158,8 @@ function handleServerMessage(msg) {
         return;
     }
     
-    // Handle legacy message formats
-    switch (msg.type) {
-        case 'LIST_APPS':
-        case 'LIST_PROCESS':
-            // Xử lý dữ liệu danh sách processes/apps
-            // msg.data mong đợi là mảng: [{pid: 123, name: "notepad.exe"}, ...]
-            currentListView = msg.type; // Track which list view we're showing
-            renderTable(msg.data); 
-            // Tự động chuyển view sang bảng
-            switchView('view-table', msg.type === 'LIST_APPS' ? 'Danh sách Ứng dụng' : 'Danh sách Tiến trình');
-            break;
-
-        case 'IMAGE_DATA':
-            // Xử lý ảnh (Screenshot hoặc Webcam)
-            // msg.data là chuỗi Base64
-            const img = document.getElementById('monitor-img');
-            if (img) {
-                img.src = "data:image/jpeg;base64," + msg.data;
-            }
-            break;
-
-        case 'WEBCAM_FRAME':
-            // Handle webcam frame from API contract
-            const webcamImg = document.getElementById('monitor-img');
-            if (webcamImg && msg.frameData) {
-                const format = msg.format || "jpeg";
-                webcamImg.src = "data:image/" + format + ";base64," + msg.frameData;
-                
-                // If we're waiting for the first frame, update UI state now
-                if (isWaitingForWebcamFrame) {
-                    isWebcamOn = true;
-                    isWaitingForWebcamFrame = false;
-                    updateWebcamButton();
-                    logStatus("✓ Webcam đã bật và đang hoạt động!");
-                }
-            }
-            break;
-        
-        case 'RESPONSE':
-            // Tin nhắn phản hồi chung (ví dụ: "Command executed")
-            logStatus("Server: " + msg.data);
-            break;
-            
-        case 'ERROR':
-            logStatus("Lỗi từ Server: " + msg.data);
-            break;
-            
-        default:
-            console.log("Tin nhắn không xác định:", msg);
-    }
+    // If message doesn't have 'success' field, log it as unrecognized
+    console.log("Tin nhắn không xác định (không có trường 'success'):", msg);
 }
 
 // Handle KEYLOG_PRINT response (identified by presence of 'data' field)

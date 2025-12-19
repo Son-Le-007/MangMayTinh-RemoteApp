@@ -6,6 +6,22 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
+
+// dpi awareness
+using System.Runtime.InteropServices;
+class DpiAwareness
+{
+    [DllImport("user32.dll")]
+    static extern bool SetProcessDpiAwarenessContext(IntPtr dpiContext);
+
+    static readonly IntPtr DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 = new IntPtr(-4);
+
+    public static void Enable()
+    {
+        SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+    }
+}
+
 namespace server
 {
     static class Program
@@ -35,6 +51,9 @@ namespace server
         /// </summary>
         static void Main()
         {
+            // Enable DPI awareness
+            DpiAwareness.Enable();
+
             // Run async initialization synchronously
             MainAsync().GetAwaiter().GetResult();
         }

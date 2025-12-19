@@ -103,7 +103,7 @@ namespace server.api
                 return new
                 {
                     success = false,
-                    message = $"Error starting webcam: {ex.Message}"
+                    message = "Webcam not found or access denied"
                 };
             }
         }

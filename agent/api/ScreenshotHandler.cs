@@ -43,9 +43,32 @@ namespace server.api
                     // Encode as JPEG so it matches what the web client expects
                     screenshot.Save(ms, ImageFormat.Jpeg);
                     byte[] imageBytes = ms.ToArray();
+                    
+                    // Save image to screenshot folder before sending to gateway
+                    try
+                    {
+                        string screenshotFolder = Path.Combine(Directory.GetCurrentDirectory(), "screenshot");
+                        if (!Directory.Exists(screenshotFolder))
+                        {
+                            Directory.CreateDirectory(screenshotFolder);
+                        }
+                        
+                        string screenshotPath = Path.Combine(screenshotFolder, "screenshot-image.jpg");
+                        File.WriteAllBytes(screenshotPath, imageBytes);
+                        Console.WriteLine($"[SCREENSHOT] Image saved to: {screenshotPath}");
+                    }
+                    catch (Exception saveEx)
+                    {
+                        Console.WriteLine($"[WARNING] Failed to save screenshot to file: {saveEx.Message}");
+                        // Continue even if saving fails - still send to gateway
+                    }
+                    
                     string base64Image = Convert.ToBase64String(imageBytes);
 
                     screenshot.Dispose();
+
+                    // Log image length before sending to gateway
+                    Console.WriteLine($"[SCREENSHOT] Image length before sending to gateway: {base64Image.Length} bytes (base64)");
 
                     return new
                     {

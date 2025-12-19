@@ -17,7 +17,7 @@ wss.on("connection", (ws) => {
 
   ws.on("message", (msg) => {
     // Convert message to string for checking
-    const msgStr = msg.toString().trim();
+    const msgStr = msg.toString();
     
     // Handle ping/keepalive messages BEFORE trying to parse as JSON
     if (msgStr === 'ping' || msgStr === 'pong') {
@@ -71,14 +71,18 @@ wss.on("connection", (ws) => {
       agentClient.send(msg.toString());
       // Log full JSON request content from web to agent
       console.log(`[ROUTING] web -> agent: Full JSON request:`);
-      console.log(JSON.stringify(data, null, 2));
+      // console.log(JSON.stringify(data, null, 2));
     } else if (ws === agentClient && webClient) {
+      // Log image length for screenshot responses (after receiving from agent, before sending to web)
+      if (data && data.imageData) {
+        console.log(`[SCREENSHOT] Image length after receiving from agent and before sending to web: ${data.imageData.length} bytes (base64)`);
+      }
       // Convert message to string to ensure it's sent as text, not binary
       // Use toString() to preserve original format (msgStr is trimmed)
       webClient.send(msg.toString());
       // Log full JSON response content from agent to web
       console.log(`[ROUTING] agent -> web: Full JSON response:`);
-      console.log(JSON.stringify(data, null, 2));
+      // console.log(JSON.stringify(data, null, 2));
     } else {
       // Message cannot be routed
       if (ws === webClient && !agentClient) {

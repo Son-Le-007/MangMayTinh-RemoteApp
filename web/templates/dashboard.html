@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>RAT Dashboard</title>
+    <title>Remote Control App</title>
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='style.css') }}"
@@ -42,7 +42,7 @@
           </button>
           <button
             class="btn btn-success"
-            style="width: 48%; display: inline-block; margin-left: 4%"
+            style="width: 48%; display: inline-block"
             onclick="startProcess()"
           >
             Start Process
@@ -160,6 +160,8 @@
         initWebSocket(GATEWAY_CONFIG);
         // Initialize webcam button state
         updateWebcamButton();
+        // Initialize automatic webcam turn-off on other button clicks
+        initWebcamAutoOff();
       };
     </script>
   </body>
