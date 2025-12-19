@@ -151,7 +151,7 @@ The API is organized into six main categories:
 ```json
 {
   "success": true,
-  "format": "base64",
+  "format": "jpeg",
   "imageData": "iVBORw0KGgoAAAANSUhEUg..."
 }
 ```

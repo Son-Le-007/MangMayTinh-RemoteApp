@@ -6,7 +6,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
-using DotNetEnv;
 namespace server
 {
     static class Program
@@ -14,7 +13,6 @@ namespace server
         // New WebSocket-based configuration
         static public IConfiguration Configuration { get; private set; }
         static public ClientWebSocket GatewayWebSocket { get; internal set; }
-        static public string AgentIP { get; private set; }
         private static CancellationTokenSource connectionLoopCancellation = new CancellationTokenSource();
         //static public void sendData(ref string s)
         //{
@@ -43,57 +41,18 @@ namespace server
 
         static async Task MainAsync()
         {
-            // Find project root (where .env file should be located, outside /Server)
-            // Start from current directory and walk up to find .env file
-            var currentDir = new DirectoryInfo(Directory.GetCurrentDirectory());
-            DirectoryInfo searchDir = currentDir;
-            string envFile = null;
-            
-            // Walk up directory tree to find .env file (max 5 levels up)
-            for (int i = 0; i < 5 && searchDir != null; i++)
-            {
-                var testEnv = Path.Combine(searchDir.FullName, ".env");
-                if (File.Exists(testEnv))
-                {
-                    envFile = testEnv;
-                    break;
-                }
-                searchDir = searchDir.Parent;
-            }
-
-            // Load .env file if found
-            bool envLoaded = false;
-            if (envFile != null && File.Exists(envFile))
-            {
-                Env.Load(envFile);
-                envLoaded = true;
-            }
-
-            // Load configuration: appsettings.json as fallback, environment variables override
-            // Make appsettings.json optional if .env was loaded (since .env takes precedence)
+            // Load configuration from appsettings.json (single source of truth)
             var builder = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", optional: envLoaded, reloadOnChange: false)
-                .AddEnvironmentVariables();
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false);
 
             Configuration = builder.Build();
-
-            // Load agent IP address from configuration
-            AgentIP = Configuration["agentIP"] ?? Environment.GetEnvironmentVariable("agentIP");
-            if (string.IsNullOrEmpty(AgentIP))
-            {
-                Console.WriteLine("[WARNING] AgentIP not configured. Please set 'agentIP' in .env file or environment variables.");
-            }
-            else
-            {
-                Console.WriteLine($"[INFO] Agent IP address: {AgentIP}");
-            }
 
             // Connect to Gateway WebSocket server
             string gatewayUrl = Configuration["Gateway:WebSocketUrl"];
             if (string.IsNullOrEmpty(gatewayUrl))
             {
-                Console.WriteLine("[ERROR] Gateway WebSocket URL not configured. Please set 'Gateway:WebSocketUrl' in appsettings.json or .env file.");
+                Console.WriteLine("[ERROR] Gateway WebSocket URL not configured. Please set 'Gateway:WebSocketUrl' in appsettings.json.");
                 return;
             }
 
